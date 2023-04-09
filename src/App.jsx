@@ -1,32 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./styles.css";
+import NewTodoForm from "../src/NewTodoForm";
+import ListTodo from "./ListTodo";
 
 function App() {
-  const [newItem, setNewItem] = useState("");
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(()=>{
+    const loacalValue = localStorage.getItem("ITEMS")
+    if(loacalValue === null) return []
+    return JSON.parse(loacalValue)
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  useEffect(() => {
+   localStorage.setItem("ITEMS", JSON.stringify(todos))
+  }, [todos])
+  
+
+  const addTodo = (title) => {
     setTodos((currentTodos) => {
       return [
         ...currentTodos,
-        { id: crypto.randomUUID(), title: newItem, completed: false },
+        { id: crypto.randomUUID(), title, completed: false },
       ];
     });
   };
 
-  // function handleToggle  (id,completed) {
-  //   setTodos(currentTodos=>{
-  //     return currentTodos.map(todo=>{
-  //       if(todo.id === id){
-  //         return {...todo, completed}
-  //       }
-  //     })
-  //         })
-
-  // };
-  const handleToggle = (id,completed) => {
-    // console.log(error);
+  const handleToggle = (id, completed) => {
     setTodos((currentTodos) => {
       return currentTodos.map((todo) => {
         if (todo.id === id) {
@@ -37,52 +35,21 @@ function App() {
     });
   };
 
-  const handleDelete =(id)=> {
+  const handleDelete = (id) => {
     setTodos((currentTodos) => {
-      return currentTodos.filter(todo => todo.id !== id);
-    })
-  }
+      return currentTodos.filter((todo) => todo.id !== id);
+    });
+  };
 
   return (
     <>
-      <form className="new-item-form" onSubmit={handleSubmit}>
-        <div className="form-row">
-          <label htmlFor="item" className="">
-            New item
-          </label>
-          <input
-            type="text"
-            className="item"
-            value={newItem}
-            onChange={(e) => setNewItem(e.target.value)}
-          />
-        </div>
-        <button className="btn">Add</button>
-      </form>
-      <h1>To do List</h1>
-      <ul className="list">
-        {todos.length === 0 && " No items "}
-        {todos.map((todo) => {
-          return (
-            <li key={todo.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={todo.completed}
-                  onChange={(e) => handleToggle(todo.id, e.target.checked)}
-                />
-                {todo.title}
-              </label>
-              <button
-                className="btn btn-danger"
-                onClick={() => handleDelete(todo.id)}
-              >
-                Delete
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+      <NewTodoForm addTodo={addTodo} />
+      <h1 >To do List</h1>
+      <ListTodo
+        handleDelete={handleDelete}
+        handleToggle={handleToggle}
+        todos={todos}
+      />
     </>
   );
 }
